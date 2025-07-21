@@ -1,0 +1,14 @@
+{
+    "name": "Barber_api",
+    "description": "Barber REST API built with PHP",
+    "type": "project",
+    "require": {
+        "firebase/php-jwt": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Barber_api\\": "./"
+        }
+    }
+}
+

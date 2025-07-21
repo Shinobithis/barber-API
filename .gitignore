@@ -1,0 +1,8 @@
+/vendor/
+.env
+.DS_Store
+.idea/
+/*.log
+/public/storage
+/storage/*.key
+composer.phar
