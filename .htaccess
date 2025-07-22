@@ -2,16 +2,16 @@ RewriteEngine On
 
 #CORS
 RewriteEngine On
-RewriteBase /barber_api
+RewriteBase /barber_api/public
 
 #Handle CORS preflight requests
 RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ index.php [QSA ,L]
+RewriteRule ^(.*)$ index.php [QSA,L]
 
 # Route all requests to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_METHOD} !-d
-RewriteRule ^(.*)$ index.php [QSA ,L]
+RewriteRule ^(.*)$ index.php [QSA,L]
 
 # Security headers
 Header always set X-Content-Type-Options nosniff

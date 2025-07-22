@@ -36,7 +36,7 @@ class AuthMiddleware {
         $user_data = self::authenticate();
 
         if ($user_data['role'] !== 'barber') {
-            return Response::unauthorized("Forbidden: You do not have the required permissions to access this resource.");
+            return Response::banned("Forbidden: You do not have the required permissions to access this resource.");
         }
         return $user_data;
     }
@@ -45,7 +45,7 @@ class AuthMiddleware {
         $user_data = self::authenticate();
 
         if ($user_data['role'] !== 'admin') {
-            return Response::unauthorized("Forbidden: You do not have the required permissions to access this resource.");
+            return Response::banned("Forbidden: You do not have the required permissions to access this resource.");
         }
         return $user_data;
     } 

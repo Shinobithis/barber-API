@@ -28,8 +28,15 @@ class Validator {
     }
 
     public function maxLength($field, $max, $value, $message = null) {
-        if ($value > $max) {
+        if (!empty($value) && strlen($value) > $max) {
             $this->errors[$field] = $message ?: ucfirst($field) . "must be at least {$max} characters";
+        }
+        return $this;
+    }
+
+    public function exactLength($field, $length, $value, $message = null) {
+        if (!empty($value) && strlen($value) != $length) {
+            $this->errors[$field] = $message ?: ucfirst($field) . "must be {$length} characters";
         }
         return $this;
     }
