@@ -11,6 +11,7 @@ $database = new Database;
 $db = $database->getConnection();
 
 $user = new User($db);
+$barbershop = new Barbershop($db);
 
 $uri = $_SERVER['REQUEST_URI'];
 
@@ -31,7 +32,6 @@ switch($resource) {
         $action = $parts[1] ?? '';
 
         switch($action) {
-
             case 'register':
                 if ($method === 'POST') {
                     $controller->register();
@@ -75,6 +75,63 @@ switch($resource) {
             default:
                 Response::notFound("Authentication endpoint not found.");
                 break;
+        }
+        break;
+    
+    case 'barbershop' :
+        $controller = new BarberShopController($barbershop, $db);
+        $action = $parts[1] ?? '';
+
+        if (isset($parts[1]) && is_numeric($parts[1])) {
+
+            $id = (int)$parts[1];
+            if ($method === 'GET') {
+                $controller->getShopById($id);
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+
+        } else if (isset($parts[1]) && $parts[1] === 'top-rated') {
+
+            if ($method === 'GET') {
+                $controller->getTopBarbers();
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+
+        } else if (isset($parts[1]) && $parts[1] === 'available') {
+
+            if ($method === 'GET') {
+                $controller->getAvailableBarbers();
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+
+        } else if (!isset($parts[1])) {
+
+            if ($method === 'GET') {
+                $controller->getAllShops();
+            } else {
+                Response::error("Method not allowed", 405);
+            } 
+        } else {
+            Response::notFound("Barbershop endpoint not found.");
+        }
+        break;
+
+        case 'barbers' :
+            $controller = new BarberShopController($barbershop, $db);
+
+            if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'schedule' && isset($parts[3])) {
+            $barber_id = (int)$parts[1];
+            $date = $parts[3];
+            if ($method === 'GET') {
+                $controller->getBarberSchedule($barber_id, $date);
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+        } else {
+            Response::notFound("Barber endpoint not found.");
         }
         break;
     
