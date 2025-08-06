@@ -76,6 +76,17 @@ class Validator {
         return $this;
     }
 
+    public function dateTime($field, $value, $format, $message = null) {
+        if (!empty($value)) {
+            $d = DateTime::createFromFormat($format, $value);
+
+            if (!($d && $d->format($format) === $value)) {
+                $this->errors[$field] = $message ?: "Invalid format for {$field}. Please use {$format}.";
+            }
+        }
+        return $this;
+    }
+
     public function hasErrors() {
         return !empty($this->errors);
     }

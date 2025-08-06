@@ -134,6 +134,40 @@ switch($resource) {
             Response::notFound("Barber endpoint not found.");
         }
         break;
+
+    case 'appointments':
+        $appointmentModel = new Appointment($db);
+        $controller = new AppointmentController($appointmentModel, $db);
+
+        if (isset($parts[1]) && is_numeric($parts[1])) {
+            $id = (int)$parts[1];
+
+            switch ($method) {
+                case 'GET':
+                    $controller->getAppointment($id);
+                    break;
+                case 'POST':
+                    $controller->editAppointment($id);
+                    break;
+                case 'DELETE':
+                    $controller->cancelAppointment($id);
+                    break;
+                default:
+                    Response::error("Method not allowed for this endpoint.", 405);
+                    break;
+            }
+        } 
+        else if (!isset($parts[1])) {
+            if ($method === 'POST') {
+                $controller->createAppointment();
+            } else {
+                Response::error("Method not allowed. Use POST to create an appointment.", 405);
+            }
+        }
+        else {
+            Response::notFound("Appointment endpoint not found.");
+        }
+        break;
     
     default:
         Response::notFound("Resource not found.");

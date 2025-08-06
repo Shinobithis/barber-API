@@ -100,4 +100,33 @@ class Barbershop {
         }
         return false; 
     }
+
+    public function findBarberById($barber_id)
+    {
+        $query = "SELECT * FROM barbers WHERE id = :barber_id LIMIT 1";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':barber_id', $barber_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function isServiceOfferedByBarber($service_id, $barber_id)
+    {
+        $query = "SELECT COUNT(*) FROM barber_services
+                WHERE service_id = :service_id
+                AND barber_id = :barber_id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
+        $stmt->bindParam(':barber_id', $barber_id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $count = $stmt->fetchColumn();
+
+        return $count > 0;
+    }
 }
