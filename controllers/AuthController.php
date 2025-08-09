@@ -45,7 +45,7 @@ class AuthController {
 
         if ($user_id) {
             $user = $this->user->findById($user_id);
-            $token = JWTHelper::generateToken($user);
+            $token = JWTHelper::generateToken($user, 'user');
 
             return Response::success([
                 'user' => $user,
@@ -78,7 +78,7 @@ class AuthController {
 
         unset($user['password_hash']);
 
-        $token = JWTHelper::generateToken($user);
+        $token = JWTHelper::generateToken($user, 'user');
         Response::success([
             'user' => $user,
             'token' => $token
@@ -86,7 +86,7 @@ class AuthController {
     }
 
     public function me() {
-        $user_data = AuthMiddleware::authenticate();
+        $user_data = AuthMiddleware::requireUser();
         $user = $this->user->findById($user_data['id']);
 
         if (!$user) {
@@ -97,7 +97,7 @@ class AuthController {
     }
 
     public function updateProfile() {
-        $user_data = AuthMiddleware::authenticate();
+        $user_data = AuthMiddleware::requireUser();
         $data = json_decode(file_get_contents("php://input"), true);
 
         $validator = new Validator;

@@ -13,7 +13,7 @@ class JWTHelper {
     private static $audience = "barber_app_users";
     private static $algorithm = "HS256";
 
-    public static function generateToken($user_data) {
+    public static function generateToken($user_data, $role) {
         $issued_at = time();
         $expiration_time = $issued_at + (24 * 60 * 60);
 
@@ -24,9 +24,8 @@ class JWTHelper {
             "exp" => $expiration_time,
             "data" => array(
                 "id" => $user_data['id'],
-                "username" => $user_data['username'],
                 "email" => $user_data['email'],
-                "role" => $user_data['role']
+                "role" => $role
             )
         );
         return JWT::encode($playload, self::$secret_key, self::$algorithm);

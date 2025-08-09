@@ -169,6 +169,116 @@ switch($resource) {
         }
         break;
     
+    case 'owner':
+        $sub_resource = $parts[1] ?? '';
+        if ($sub_resource === 'auth') {
+            
+            $ownerModel = new ShopOwner($db);
+            $controller = new OwnerController($ownerModel, $db);
+
+            $action = $parts[2] ?? '';
+
+            switch ($action) {
+                case 'register':
+                    if ($method === 'POST') {
+                        $controller->register();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+                
+                case 'login':
+                    if ($method === 'POST') {
+                        $controller->login();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+
+                case 'me':
+                    if ($method === 'GET') {
+                        $controller->me();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+                
+                case 'logout':
+                     if ($method === 'POST') {
+                        $controller->logout();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+
+                default:
+                    Response::notFound("Owner authentication endpoint not found.");
+                    break;
+            }
+        } else {
+            Response::notFound("Owner resource not found.");
+        }
+        break;
+
+    case 'professional':
+        $sub_resource = $parts[1] ?? '';
+        if ($sub_resource === 'auth') {
+            
+            $professionalModel = new Professional($db);
+            $controller = new ProfessionalController($professionalModel, $db);
+
+            $action = $parts[2] ?? '';
+
+            switch ($action) {
+                case 'register':
+                    if ($method === 'POST') {
+                        $controller->register();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+                
+                case 'update':
+                    if ($method === 'POST') {
+                        $controller->updateProfile();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+                
+                case 'login':
+                    if ($method === 'POST') {
+                        $controller->login();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+
+                case 'me':
+                    if ($method === 'GET') {
+                        $controller->me();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+                
+                case 'logout':
+                     if ($method === 'POST') {
+                        $controller->logout();
+                    } else {
+                        Response::error("Method not allowed", 405);
+                    }
+                    break;
+
+                default:
+                    Response::notFound("Owner authentication endpoint not found.");
+                    break;
+            }
+        } else {
+            Response::notFound("Owner resource not found.");
+        }
+        break;
+
     default:
         Response::notFound("Resource not found.");
         break;
