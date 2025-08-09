@@ -78,7 +78,7 @@ switch($resource) {
         }
         break;
     
-    case 'barbershop' :
+    case 'shops' :
         $controller = new BarberShopController($barbershop, $db);
         $action = $parts[1] ?? '';
 
@@ -119,10 +119,10 @@ switch($resource) {
         }
         break;
 
-        case 'barbers' :
-            $controller = new BarberShopController($barbershop, $db);
+    case 'barbers' :
+        $controller = new BarberShopController($barbershop, $db);
 
-            if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'schedule' && isset($parts[3])) {
+        if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'schedule' && isset($parts[3])) {
             $barber_id = (int)$parts[1];
             $date = $parts[3];
             if ($method === 'GET') {
@@ -172,7 +172,6 @@ switch($resource) {
     case 'owner':
         $sub_resource = $parts[1] ?? '';
         if ($sub_resource === 'auth') {
-            
             $ownerModel = new ShopOwner($db);
             $controller = new OwnerController($ownerModel, $db);
 
@@ -214,6 +213,38 @@ switch($resource) {
                 default:
                     Response::notFound("Owner authentication endpoint not found.");
                     break;
+            }
+        } else if ($sub_resource === 'shops') {
+            $shopModel = new Shop($db);
+            $controller = new ShopController($shopModel, $db);
+
+            if (!isset($parts[2])) {
+                switch ($method) {
+                    case 'GET':
+                        $controller->getMyShops();
+                        break;
+                    case 'POST':
+                        $controller->createShop();
+                        break;
+                    default:
+                        Response::error("Method not allowed.", 405);
+                        break;
+                }
+            } else if (isset($parts[2]) && is_numeric($parts[2])) {
+                $shop_id = (int)$parts[2];
+                switch ($method) {
+                    case 'GET':
+                        $controller->getShop($shop_id);
+                        break;
+                    case 'POST':
+                        $controller->updateShop($shop_id);
+                        break;
+                    default:
+                        Response::error("Method not allowed.", 405);
+                        break;
+                }
+            } else {
+                Response::notFound("Shop management endpoint not found.");
             }
         } else {
             Response::notFound("Owner resource not found.");
@@ -278,7 +309,7 @@ switch($resource) {
             Response::notFound("Owner resource not found.");
         }
         break;
-
+        
     default:
         Response::notFound("Resource not found.");
         break;
