@@ -48,6 +48,13 @@ class Validator {
         return $this;
     }
 
+    public function string($field, $value, $message = null) {
+        if (!empty($value) && !is_string($value)) {
+            $this->errors[$field] = $message ?: ucfirst($field) . " must be a string";
+        }
+        return $this;
+    }
+
     public function in($field, $value, $allowed, $message = null) {
         if (!empty($value) && !in_array($value, $allowed)) {
             $this->errors[$field] = $message ?: ucfirst($field) . " Must be one of: " . implode(',', $allowed);

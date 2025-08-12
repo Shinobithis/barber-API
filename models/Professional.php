@@ -70,26 +70,71 @@ class Professional {
     }
 
     public function update($id, $data) {
-    $fields = [];
-    $params = [':id' => $id];
+        $fields = [];
+        $params = [':id' => $id];
 
-    $allowed_fields = ["name", "phone", "bio", "profile_image", "is_available"];
+        $allowed_fields = ["name", "phone", "bio", "profile_image", "is_available"];
 
-    foreach ($data as $key => $value) {
-        if (in_array($key, $allowed_fields)) {
-            $fields[] = "{$key} = :{$key}";
-            $params[":{$key}"] = $value;
-        } 
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowed_fields)) {
+                $fields[] = "{$key} = :{$key}";
+                $params[":{$key}"] = $value;
+            } 
+        }
+
+        if (empty($fields)) {
+            return false;
+        }
+
+        $query = "UPDATE " . $this->table . " SET " . implode(", ", $fields) . " WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+
+        return $stmt->execute($params);
     }
 
-    if (empty($fields)) {
-        return false;
+    public function findByShopId($shop_id) {
+        $query = "SELECT p.id, p.name, p.bio, p.profile_image, p.is_available
+                FROM " . $this->table . " p
+                INNER JOIN shop_professionals sp ON p.id = sp.professional_id
+                WHERE sp.shop_id = :shop_id AND sp.status = 'active'";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":shop_id", $shop_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function findTopRated($filters = []) {
+        $query = "SELECT
+                    p.id,
+                    p.name,
+                    p.profile_image,
+                    AVG(r.rating) as average_rating,
+                    COUNT(r.id) as review_count
+                FROM " . $this->table . " p
+                LEFT JOIN reviews r ON p.id = r.professional_id
+                INNER JOIN professional_skills ps ON p.id = ps.professional_id
+                INNER JOIN services s ON ps.service_id = s.id";
 
-    $query = "UPDATE " . $this->table . " SET " . implode(", ", $fields) . " WHERE id = :id";
-    
-    $stmt = $this->conn->prepare($query);
+        $params = [];
+        $whereClauses = ["p.id IS NOT NULL"];
 
-    return $stmt->execute($params);
-}
+
+        if (!empty($filters['gender_scope']) && in_array($filters['gender_scope'], ['men', 'women'])) {
+            $whereClauses[] = "(s.gender_scope = :gender_scope OR s.gender_scope = 'unisex')";
+            $params[':gender_scope'] = $filters['gender_scope'];
+        }
+
+        if (!empty($whereClauses)) {
+            $query .= " WHERE " . implode(' AND ', $whereClauses);
+        }
+
+        $query .= " GROUP BY p.id ORDER BY average_rating DESC, review_count DESC LIMIT 10";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

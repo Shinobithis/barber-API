@@ -11,7 +11,9 @@ $database = new Database;
 $db = $database->getConnection();
 
 $user = new User($db);
-$barbershop = new Barbershop($db);
+$shopModel = new Shop($db);
+$professionalModel = new Professional($db);
+$serviceModel = new Service($db);
 
 $uri = $_SERVER['REQUEST_URI'];
 
@@ -79,7 +81,7 @@ switch($resource) {
         break;
     
     case 'shops' :
-        $controller = new BarberShopController($barbershop, $db);
+        $controller = new PublicController($shopModel, $professionalModel, $serviceModel);
         $action = $parts[1] ?? '';
 
         if (isset($parts[1]) && is_numeric($parts[1])) {
@@ -91,42 +93,23 @@ switch($resource) {
                 Response::error("Method not allowed", 405);
             }
 
-        } else if (isset($parts[1]) && $parts[1] === 'top-rated') {
-
-            if ($method === 'GET') {
-                $controller->getTopBarbers();
-            } else {
-                Response::error("Method not allowed", 405);
-            }
-
-        } else if (isset($parts[1]) && $parts[1] === 'available') {
-
-            if ($method === 'GET') {
-                $controller->getAvailableBarbers();
-            } else {
-                Response::error("Method not allowed", 405);
-            }
-
         } else if (!isset($parts[1])) {
-
             if ($method === 'GET') {
-                $controller->getAllShops();
+                $controller->getShops();
             } else {
                 Response::error("Method not allowed", 405);
-            } 
+            }
         } else {
             Response::notFound("Barbershop endpoint not found.");
         }
         break;
 
-    case 'barbers' :
-        $controller = new BarberShopController($barbershop, $db);
+    case 'professionals' :
+        $controller = new PublicController($shopModel, $professionalModel, $serviceModel);
 
-        if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'schedule' && isset($parts[3])) {
-            $barber_id = (int)$parts[1];
-            $date = $parts[3];
+        if (isset($parts[1]) && $parts[1] === 'top-rated') {
             if ($method === 'GET') {
-                $controller->getBarberSchedule($barber_id, $date);
+                $controller->getTopProfessionals();
             } else {
                 Response::error("Method not allowed", 405);
             }
@@ -246,7 +229,20 @@ switch($resource) {
             } else {
                 Response::notFound("Shop management endpoint not found.");
             }
-        } else {
+        } else if ($sub_resource === 'shops' && isset($parts[2]) && is_numeric($parts[2]) && isset($parts[3]) && $parts[3] === 'hire') {
+            $shop_id = (int)$parts[2];
+
+            $shopModel = new Shop($db);
+            $professionalModel = new Professional($db);
+            $shopProfessionalModel = new ShopProfessionals($db);
+            $controller = new EmploymentController($shopProfessionalModel, $professionalModel, $shopModel);
+
+            if ($method === 'POST') {
+                $controller->sendHireRequest();
+            } else {
+                Response::error("Method not allowed.", 405);
+            }
+        }else {
             Response::notFound("Owner resource not found.");
         }
         break;
@@ -254,7 +250,6 @@ switch($resource) {
     case 'professional':
         $sub_resource = $parts[1] ?? '';
         if ($sub_resource === 'auth') {
-            
             $professionalModel = new Professional($db);
             $controller = new ProfessionalController($professionalModel, $db);
 
@@ -305,11 +300,78 @@ switch($resource) {
                     Response::notFound("Owner authentication endpoint not found.");
                     break;
             }
+        } else if ($sub_resource === 'profile') {
+            $serviceModel = new Service($db);
+            $offerModel = new Offer($db);
+            $professionalServicesModel = new ProfessionalServices($db);
+            $controller = new ProfessionalProfileController($professionalServicesModel, $serviceModel, $offerModel);
+
+            $action = $parts[2] ?? '';
+
+            if ($action === 'services') {
+                if ($method === 'GET' && !isset($parts[3])) {
+                    $controller->getMyServices();
+                } else if ($method === 'POST' && !isset($parts[3])) {
+                    $controller->addMyService();
+                } else if ($method === 'DELETE' && isset($parts[3]) && is_numeric($parts[3])) {
+                    $service_id = (int)$parts[3];
+                    $controller->removeMyService($service_id);
+                } else {
+                    Response::notFound("Professional services endpoint not found.");
+                }
+            } else if ($action === 'offers') {
+                if ($method === 'GET' && !isset($parts[3])) {
+                    $controller->getMyOffers();
+                } else if ($method === 'POST' && !isset($parts[3])) {
+                    $controller->createOffer();
+                } else if ($method === 'POST' && isset($parts[3]) && is_numeric($parts[3])) {
+                    $id = (int)$parts[3];
+                    $controller->updateOffer($id);
+                } else if ($method === 'DELETE' && isset($parts[3]) && is_numeric($parts[3])) {
+                    $id = (int)$parts[3];
+                    $controller->deleteOffer($id);
+                } else {
+                    Response::notFound("Professional offers endpoint not found.");
+                }
+            } else {
+                Response::notFound("Professional profile endpoint not found.");
+            }
+        }else if ($sub_resource === 'requests') {
+            $shopProfessionalsModel = new ShopProfessionals($db);
+            $professionalModel = new Professional($db);
+            $shopModel = new Shop($db);
+            $controller = new EmploymentController($shopProfessionalsModel, $professionalModel, $shopModel);
+
+            if (!isset($parts[2])) {
+                if ($method === 'GET') {
+                    $controller->getMyPendingRequests();
+                } else {
+                    Response::error("Method not allowed.", 405);
+                }
+            } else if (isset($parts[2]) && is_numeric($parts[2]) && isset($parts[3]) && $parts[3] === 'respond') {
+                $request_id = (int)$parts[2];
+                if ($method === 'POST') {
+                    $controller->respondToRequest($request_id);
+                } else {
+                    Response::error("Method not allowed.", 405);
+                }
+            }
         } else {
             Response::notFound("Owner resource not found.");
         }
         break;
+    
+    case 'services':
+        $sub_resource = $parts[1] ?? '';
+        $controller = new PublicController($shopModel, $professionalModel, $serviceModel);
         
+        if ($method === 'GET') {
+            $controller->getServices();
+        } else {
+            Response::error("Method not allowed", 405);
+        }
+        break;
+
     default:
         Response::notFound("Resource not found.");
         break;

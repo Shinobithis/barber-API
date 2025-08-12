@@ -77,4 +77,40 @@ class Shop {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function findAll($filters = []) {
+        $query = "SELECT * FROM " . $this->table;
+        $params = [];
+        $whereClauses = [];
+
+        if (!empty($filters['is_vip']) && $filters['is_vip'] == 'true') {
+            $whereClauses[] = "is_vip = 1";
+        }
+
+        if (!empty($filters['shop_type'])) {
+            $whereClauses[] = "shop_type = :shop_type";
+            $params[':shop_type'] = $filters['shop_type'];
+        }
+
+        // Add more filters here later (e.g., opens_at, closes_at)
+
+        // If there are any WHERE conditions, append them to the query
+        if (!empty($whereClauses)) {
+            $query .= " WHERE " . implode(' AND ', $whereClauses);
+        }
+
+        // Handle 'near_me' sorting (this is a simplified version)
+        // A real implementation uses the Haversine formula, which is very complex.
+        // For now, we can just order randomly or by creation date.
+        //we will need to add here the near me complex Haversine formular
+
+        $limit = isset($filters['limit']) ? (int)$filters['limit'] : 10;
+        $offset = isset($filters['offset']) ? (int)$filters['offset'] : 0;
+        $query .= " LIMIT " . $limit . " OFFSET " . $offset;
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
