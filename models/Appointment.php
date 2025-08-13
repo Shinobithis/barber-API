@@ -96,4 +96,18 @@ class Appointment {
 
         return $count == 0;
     }
+    public function findForReview($appointment_id, $user_id) {
+        $query = "SELECT * FROM " . $this->table . " 
+                WHERE id = :appointment_id 
+                AND user_id = :user_id 
+                AND status = 'completed' 
+                LIMIT 1";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':appointment_id', $appointment_id);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

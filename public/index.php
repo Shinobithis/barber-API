@@ -99,6 +99,17 @@ switch($resource) {
             } else {
                 Response::error("Method not allowed", 405);
             }
+        } else if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'reviews') {
+            $shop_id = (int)$parts[1];
+            $reviewModel = new Review($db);
+            $appointmentModel = new Appointment($db);
+            $controller = new ReviewController($reviewModel, $appointmentModel);
+
+            if ($method === 'GET') {
+                $controller->getReviewsForShop($shop_id);
+            } else {
+                Response::error("Method not allowed", 405);
+            }
         } else {
             Response::notFound("Barbershop endpoint not found.");
         }
@@ -110,6 +121,17 @@ switch($resource) {
         if (isset($parts[1]) && $parts[1] === 'top-rated') {
             if ($method === 'GET') {
                 $controller->getTopProfessionals();
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+        } else if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'reviews') {
+            $professional_id = (int)$parts[1];
+            $reviewModel = new Review($db);
+            $appointmentModel = new Appointment($db);
+            $controller = new ReviewController($reviewModel, $appointmentModel);
+
+            if ($method === 'GET') {
+                $controller->getReviewsForProfessional($professional_id);
             } else {
                 Response::error("Method not allowed", 405);
             }
@@ -369,6 +391,36 @@ switch($resource) {
             $controller->getServices();
         } else {
             Response::error("Method not allowed", 405);
+        }
+        break;
+    
+    case 'favorites':
+        $favoritesModel = new Favorites($db);
+        $controller = new FavoritesController($favoritesModel, $db);
+
+        $type = $parts[1] ?? '';
+        $item_id = $parts[2] ?? null;
+
+        if ($method === 'GET' && $type && !$item_id) {
+            $controller->getFavorites($type);
+        } else if ($method === 'POST' && $type && $item_id && is_numeric($item_id)) {
+            $controller->addFavorite($type, (int)$item_id);
+        } else if ($method === 'DELETE' && $type && $item_id && is_numeric($item_id)) {
+            $controller->removeFavorite($type, (int)$item_id);
+        } else {
+            Response::notFound("Favorites endpoint not found.");
+        }
+        break;
+
+    case 'reviews':
+        $reviewModel = new Review($db);
+        $appointmentModel = new Appointment($db);
+        $controller = new ReviewController($reviewModel, $appointmentModel);
+
+        if ($method === 'POST' && !isset($parts[1])) {
+            $controller->createReview();
+        } else {
+            Response::notFound("Reviews endpoint not found.");
         }
         break;
 

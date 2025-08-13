@@ -25,6 +25,10 @@ class Response {
             'errors' => $errors
         ], $status_code);
     }
+    public static function noContent() {
+        http_response_code(204);
+        exit;
+    }
 
     public static function unauthorized($message = "You are not authorized to access") {
         self::error($message, 401);
@@ -37,4 +41,5 @@ class Response {
     public static function banned($message = "You are banned from accessing") {
         self::error($message, 403);
     }
+
 }
