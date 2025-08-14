@@ -378,6 +378,26 @@ switch($resource) {
                     Response::error("Method not allowed.", 405);
                 }
             }
+        } else if ($sub_resource === 'me' && isset($parts[2]) && $parts[2] === 'schedule') {
+            $scheduleModel = new Schedule($db);
+            $controller = new ScheduleController($scheduleModel);
+
+            if ($method === 'GET') {
+                $controller->getMySchedule();
+            } else if ($method === 'POST') {
+                $controller->updateMySchedule();
+            } else {
+                Response::error("Method not allowed for this endpoint.", 405);
+            }
+        } else if ($sub_resource === 'me' && isset($parts[2]) && $parts[2] === 'avatar') {
+            $professionalModel = new Professional($db);
+            $controller = new ProfessionalController($professionalModel, $db);
+
+            if ($method === 'POST') {
+                $controller->updateAvatar();
+            } else {
+                Response::error("Method not allowed for this endpoint.", 405);
+            }
         } else {
             Response::notFound("Owner resource not found.");
         }
