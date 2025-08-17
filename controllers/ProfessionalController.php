@@ -178,6 +178,54 @@ class ProfessionalController {
         }
     }
 
+    public function uploadPortfolioImage() {
+        $professionalData = AuthMiddleware::requireProfessional();
+        $id = $professionalData['id'];
+
+        if (empty($_FILES['portfolio_image'])) {
+            Response::error("No image file uploaded.", 400);
+        }
+
+        $file = $_FILES['portfolio_image'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            Response::error("An error occurred during file upload.", 500);
+        }
+
+        $maxSize = 5 * 1024 * 1024;
+        if ($file['size'] > $maxSize) {
+            Response::error("File is too large. Maximum size is 5MB.", 400);
+        }
+
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $fileType = mime_content_type($file['tmp_name']);
+        if (!in_array($fileType, $allowedTypes)) {
+            Response::error("Invalid file type. Only JPG, PNG, and GIF are allowed.", 400);
+        }
+
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $newFilename = uniqid('portfolio_', true) . '.' . $extension;
+        $uploadDir = __DIR__ . '/../uploads/portfolio/';
+        if (!is_dir($uploadDir)) { mkdir($uploadDir, 0777, true); }
+        $uploadPath = $uploadDir . $newFilename;
+
+        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            Response::error("Failed to save the uploaded file.", 500);
+        }
+
+        $dbPath = '/uploads/portfolio/' . $newFilename;
+        
+        $newImageId = $this->professional->addPortfolioImage($id, $dbPath);
+
+        if ($newImageId) {
+            Response::success(['image_url' => $dbPath], 201, "Portfolio image uploaded successfully.");
+        } else {
+            unlink($uploadPath);
+            Response::error("Failed to save image record to database.", 500);
+        }
+    }
+
+
     public function logout() {
         return Response::success([], 200, "Logout successful.");
     }

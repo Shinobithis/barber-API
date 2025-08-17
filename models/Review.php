@@ -31,7 +31,7 @@ class Review
     }
 
     public function findByProfessionalId($professional_id) {
-        $query = "SELECT r.rating, r.comment, r.created_at, u.name as reviewer_name, u.avatar_url as reviewer_avatar
+        $query = "SELECT r.id, r.rating, r.comment, r.created_at, u.name as reviewer_name, u.avatar_url as reviewer_avatar
                   FROM " . $this->table . " r
                   JOIN users u ON r.user_id = u.id
                   WHERE r.professional_id = :professional_id

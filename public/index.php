@@ -124,6 +124,13 @@ switch($resource) {
             } else {
                 Response::error("Method not allowed", 405);
             }
+        } else if (isset($parts[1]) && is_numeric($parts[1]) && !isset($parts[2])) {
+            $id = (int)$parts[1];
+            if ($method === 'GET') {
+                $controller->getProfessionalById($id);
+            } else {
+                Response::error("Method not allowed", 405);
+            }
         } else if (isset($parts[1]) && is_numeric($parts[1]) && isset($parts[2]) && $parts[2] === 'reviews') {
             $professional_id = (int)$parts[1];
             $reviewModel = new Review($db);
@@ -132,6 +139,12 @@ switch($resource) {
 
             if ($method === 'GET') {
                 $controller->getReviewsForProfessional($professional_id);
+            } else {
+                Response::error("Method not allowed", 405);
+            }
+        } else if (!isset($parts[1])) {
+            if ($method === 'GET') {
+                $controller->getProfessionals();
             } else {
                 Response::error("Method not allowed", 405);
             }
